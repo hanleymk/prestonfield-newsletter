@@ -1,0 +1,308 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   newsletter.css  —  Prestonfield HOA Newsletter
+   Screen layout + print stylesheet
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Reset & base ─────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #1a1a1a;
+  background: #f3f4f6;
+}
+
+/* ── Page wrapper ─────────────────────────────────────────────────────────── */
+.newsletter-page {
+  max-width: 900px;
+  margin: 24px auto;
+  background: white;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+}
+
+/* ── Masthead ─────────────────────────────────────────────────────────────── */
+.masthead {
+  position: relative;
+  overflow: hidden;
+  background: #1a1a2e;
+}
+.masthead-banner {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  object-position: center 40%;
+  display: block;
+}
+.masthead-date {
+  position: absolute;
+  bottom: 10px;
+  right: 14px;
+  font-style: italic;
+  font-size: 13px;
+  color: rgba(255,255,255,0.9);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+  background: rgba(0,0,0,0.35);
+  padding: 2px 8px;
+  border-radius: 3px;
+}
+
+/* ── Two-column body ──────────────────────────────────────────────────────── */
+.newsletter-body {
+  display: flex;
+  align-items: flex-start;
+}
+
+/* ── Left sidebar ─────────────────────────────────────────────────────────── */
+.newsletter-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  padding: 16px 14px;
+  border-right: 1px solid #d1d5db;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.sidebar-section {
+  margin-bottom: 14px;
+}
+.sidebar-section:last-child {
+  margin-bottom: 0;
+}
+
+.sidebar-heading {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #374151;
+  margin: 0 0 6px 0;
+  padding-bottom: 3px;
+  border-bottom: 1.5px solid #374151;
+}
+
+.board-member {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2px;
+  gap: 4px;
+}
+.board-member-name { font-weight: 600; }
+.board-member-role { color: #6b7280; font-style: italic; }
+
+.sidebar-box {
+  border: 1px solid #c9cdd4;
+  border-radius: 4px;
+  padding: 8px 10px;
+  background: #f9fafb;
+  font-size: 11.5px;
+}
+.sidebar-box + .sidebar-box { margin-top: 8px; }
+.sidebar-box strong { font-family: Arial, Helvetica, sans-serif; }
+
+.sidebar-box a {
+  color: #1d4ed8;
+  text-decoration: none;
+  word-break: break-all;
+}
+.sidebar-box a:hover { text-decoration: underline; }
+
+.utility-list { list-style: none; padding: 0; margin: 4px 0 0; }
+.utility-list li { margin-bottom: 4px; }
+.utility-list .util-label { font-weight: 600; display: block; }
+.utility-list .util-phone { color: #374151; }
+
+.meeting-date-entry { margin-bottom: 5px; font-size: 11.5px; }
+
+/* ── Main content area ────────────────────────────────────────────────────── */
+.newsletter-main {
+  flex: 1;
+  padding: 16px 20px;
+  min-width: 0;
+}
+
+/* ── Article sections ─────────────────────────────────────────────────────── */
+.newsletter-section {
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+.newsletter-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.section-heading {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #111827;
+  margin: 0 0 10px 0;
+  padding-bottom: 5px;
+  border-bottom: 2px solid #111827;
+}
+
+.section-body { overflow: hidden; }
+.section-body p { margin: 0 0 0.75em 0; }
+.section-body p:last-child { margin-bottom: 0; }
+
+/* Image floats */
+.section-image-right {
+  float: right;
+  margin: 0 0 10px 16px;
+  max-width: 180px;
+}
+.section-image-left {
+  float: left;
+  margin: 0 16px 10px 0;
+  max-width: 180px;
+}
+.section-image-right img,
+.section-image-left img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 3px;
+}
+.image-caption {
+  font-size: 11px;
+  color: #6b7280;
+  font-style: italic;
+  margin-top: 3px;
+  text-align: center;
+}
+
+/* ── Footer ───────────────────────────────────────────────────────────────── */
+.newsletter-footer {
+  border-top: 1px solid #d1d5db;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: #6b7280;
+  font-family: Arial, Helvetica, sans-serif;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.footer-print-btn {
+  background: #374151;
+  color: white;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+.footer-print-btn:hover { background: #1f2937; }
+.footer-archive-link { color: #1d4ed8; text-decoration: none; }
+.footer-archive-link:hover { text-decoration: underline; }
+
+/* ── No-issues / loading / error states ─────────────────────────────────── */
+.loading-message, .error-message, .no-issues-message {
+  text-align: center;
+  padding: 80px 24px;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #6b7280;
+  font-size: 15px;
+}
+.error-message { color: #b91c1c; }
+
+/* ── Archive page ─────────────────────────────────────────────────────────── */
+.archive-page {
+  max-width: 680px;
+  margin: 40px auto;
+  background: white;
+  padding: 32px 40px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+  font-family: Arial, Helvetica, sans-serif;
+}
+.archive-page h1 {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 6px;
+  color: #111827;
+}
+.archive-back-link {
+  font-size: 13px;
+  color: #1d4ed8;
+  text-decoration: none;
+  display: inline-block;
+  margin-bottom: 28px;
+}
+.archive-back-link:hover { text-decoration: underline; }
+.archive-year { margin-bottom: 28px; }
+.archive-year-heading {
+  font-size: 16px;
+  font-weight: 700;
+  color: #374151;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 6px;
+  margin: 0 0 12px;
+}
+.archive-issue-link {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  border: 1px solid #e5e7eb;
+  border-radius: 5px;
+  text-decoration: none;
+  color: #111827;
+  font-size: 14px;
+  transition: background 0.15s;
+}
+.archive-issue-link:hover { background: #f0f4ff; border-color: #bfdbfe; }
+.archive-issue-date { color: #6b7280; font-size: 12px; }
+.archive-empty {
+  color: #9ca3af;
+  font-size: 14px;
+  text-align: center;
+  padding: 40px 0;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   Print stylesheet
+   ════════════════════════════════════════════════════════════════════════════ */
+@media print {
+  body {
+    background: white;
+    font-size: 11pt;
+  }
+
+  /* Remove screen-only chrome */
+  .newsletter-footer { display: none; }
+  .footer-print-btn  { display: none; }
+  #loading-state, #error-state { display: none; }
+
+  /* Remove shadows and margins for print */
+  .newsletter-page {
+    max-width: 100%;
+    margin: 0;
+    box-shadow: none;
+  }
+
+  /* Keep the two-column layout for print */
+  .newsletter-body { display: flex; }
+  .newsletter-sidebar { width: 2in; }
+
+  /* Avoid page breaks inside sections */
+  .newsletter-section { page-break-inside: avoid; }
+  .sidebar-box        { page-break-inside: avoid; }
+
+  /* Masthead: full width, reduced height for print */
+  .masthead-banner { height: 1.2in; }
+
+  /* Links: show URL after text in print */
+  .sidebar-box a::after {
+    content: " (" attr(href) ")";
+    font-size: 8pt;
+    color: #555;
+  }
+}
