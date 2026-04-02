@@ -184,3 +184,83 @@ function testCreateAndGetIssue() {
 
   Logger.log('✓ createIssue, getIssueById, updateIssueField passed');
 }
+
+// ─── Sections ────────────────────────────────────────────────────────────────
+
+function normalizeSectionRow(r) {
+  return {
+    issue_id:       Number(r['issue_id']),
+    section_key:    String(r['section_key']    || ''),
+    title:          String(r['title']          || ''),
+    body:           String(r['body']           || ''),
+    image_url:      String(r['image_url']      || ''),
+    image_position: String(r['image_position'] || 'right'),
+    display_order:  Number(r['display_order']  || 0),
+    enabled:        r['enabled'] === true || r['enabled'] === 'TRUE' || r['enabled'] === 'true'
+  };
+}
+
+/** Returns all sections for an issue, sorted by display_order. */
+function getSectionsForIssue(issueId) {
+  const numId = Number(issueId);
+  return sheetToObjects(getSheet('Sections'))
+    .filter(r => Number(r['issue_id']) === numId)
+    .map(normalizeSectionRow)
+    .sort((a, b) => a.display_order - b.display_order);
+}
+
+/**
+ * Replaces all section rows for an issue with the provided array.
+ * Deletes existing rows for the issue (from the bottom up to avoid index shifts),
+ * then appends the new rows.
+ */
+function saveSectionsForIssue(issueId, sections) {
+  const sheet = getSheet('Sections');
+  const data = sheet.getDataRange().getValues();
+  const numId = Number(issueId);
+
+  // Collect row indices (1-based) belonging to this issue, bottom-up
+  const rowsToDelete = [];
+  for (let i = data.length - 1; i >= 1; i--) {
+    if (Number(data[i][0]) === numId) rowsToDelete.push(i + 1);
+  }
+  rowsToDelete.forEach(rowIdx => sheet.deleteRow(rowIdx));
+
+  // Append the new section rows
+  sections.forEach(s => {
+    sheet.appendRow([
+      numId,
+      s.section_key    || '',
+      s.title          || '',
+      s.body           || '',
+      s.image_url      || '',
+      s.image_position || 'right',
+      s.display_order  != null ? s.display_order : 0,
+      s.enabled        ? true : false
+    ]);
+  });
+}
+
+function testSectionsCRUD() {
+  const id = createIssue('Section Test Issue', 'Test 2026');
+
+  const sections = getSectionsForIssue(id);
+  if (sections.length !== 7) throw new Error('Expected 7 default sections, got ' + sections.length);
+  if (sections[0].section_key !== 'main_message') throw new Error('First section should be main_message');
+  if (sections[1].section_key !== 'meeting_dates') throw new Error('Second section should be meeting_dates');
+  if (sections[0].enabled !== true) throw new Error('main_message should be enabled');
+  if (sections[2].enabled !== false) throw new Error('article_1 should be disabled');
+
+  sections[0].title = 'A Note from the Board';
+  sections[0].body = 'Hello neighbors!';
+  sections[2].enabled = true;
+  sections[2].title = 'Snow Removal';
+  saveSectionsForIssue(id, sections);
+
+  const saved = getSectionsForIssue(id);
+  if (saved[0].title !== 'A Note from the Board') throw new Error('title not saved');
+  if (saved[0].body !== 'Hello neighbors!') throw new Error('body not saved');
+  if (saved[2].enabled !== true) throw new Error('article_1 enabled not saved');
+
+  Logger.log('✓ Sections CRUD passed');
+}
