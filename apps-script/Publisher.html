@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HOA Newsletter Publisher</title>
+  <?!= include('PublisherCSS') ?>
+</head>
+<body>
+
+<div id="app">
+  <div id="sidebar">
+    <div id="sidebar-header">
+      <h1>Newsletter Publisher</h1>
+      <button id="btn-new-issue" onclick="openNewIssueModal()">+ New Issue</button>
+    </div>
+    <div id="issue-list"></div>
+  </div>
+  <div id="editor">
+    <div id="editor-placeholder">Select an issue from the sidebar, or create a new one.</div>
+    <div id="editor-content" style="display:none"></div>
+  </div>
+</div>
+
+<!-- New Issue Modal -->
+<div id="modal-overlay">
+  <div id="modal">
+    <h2>New Issue</h2>
+    <div class="field-group">
+      <label>Internal Title (e.g. "Fall/Winter 2025")</label>
+      <input type="text" id="new-title" placeholder="Fall/Winter 2025">
+    </div>
+    <div class="field-group">
+      <label>Masthead Season Label (shown on newsletter)</label>
+      <input type="text" id="new-season" placeholder="Fall/Winter 2025–2026">
+    </div>
+    <div id="modal-actions">
+      <button class="btn btn-secondary" onclick="closeNewIssueModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitNewIssue()">Create Issue</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  // Data bootstrapped from server
+  var ALL_ISSUES   = <?= issuesJson ?>;
+  var APP_CONFIG   = <?= configJson ?>;
+  var currentIssueId = null;
+</script>
+<?!= include('PublisherJS') ?>
+</body>
+</html>
