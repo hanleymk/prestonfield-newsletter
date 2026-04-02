@@ -1,0 +1,376 @@
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// Publisher client-side JavaScript
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ─── Toast ──────────────────────────────────────────────────────────────────
+
+function showToast(msg, isError) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show' + (isError ? ' error' : '');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function() { t.className = ''; }, 3000);
+}
+
+// ─── Sidebar ────────────────────────────────────────────────────────────────
+
+function renderIssueList() {
+  var list = document.getElementById('issue-list');
+  if (ALL_ISSUES.length === 0) {
+    list.innerHTML = '<div style="padding:16px;color:#64748b;font-size:13px">No issues yet. Create one above.</div>';
+    return;
+  }
+  list.innerHTML = ALL_ISSUES.map(function(issue) {
+    var active = issue.issue_id === currentIssueId ? ' active' : '';
+    var badgeClass = 'badge badge-' + issue.status;
+    return '<div class="issue-item' + active + '" onclick="loadIssue(' + issue.issue_id + ')">' +
+      '<div class="issue-item-title">' + escHtml(issue.title || 'Untitled') + '</div>' +
+      '<div class="issue-item-meta"><span class="' + badgeClass + '">' + issue.status + '</span></div>' +
+      '</div>';
+  }).join('');
+}
+
+function escHtml(s) {
+  return String(s || '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── New Issue Modal ─────────────────────────────────────────────────────────
+
+function openNewIssueModal() {
+  document.getElementById('new-title').value = '';
+  document.getElementById('new-season').value = '';
+  document.getElementById('modal-overlay').classList.add('open');
+  setTimeout(function(){ document.getElementById('new-title').focus(); }, 50);
+}
+
+function closeNewIssueModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+
+function submitNewIssue() {
+  var title  = document.getElementById('new-title').value.trim();
+  var season = document.getElementById('new-season').value.trim();
+  if (!title) { showToast('Please enter a title.', true); return; }
+  closeNewIssueModal();
+  showToast('Creating issue…');
+  google.script.run
+    .withSuccessHandler(function(result) {
+      showToast('Issue created.');
+      google.script.run
+        .withSuccessHandler(function(issues) {
+          ALL_ISSUES = issues;
+          renderIssueList();
+          loadIssue(result.issue_id);
+        })
+        .withFailureHandler(function(e) { showToast(e.message, true); })
+        .getAllIssuesFromClient();
+    })
+    .withFailureHandler(function(e) { showToast(e.message, true); })
+    .createIssueFromClient({ title: title, season_label: season });
+}
+
+// ─── Load Issue ──────────────────────────────────────────────────────────────
+
+function loadIssue(issueId) {
+  currentIssueId = issueId;
+  renderIssueList();
+  showToast('Loading…');
+  google.script.run
+    .withSuccessHandler(function(data) {
+      renderEditor(data.issue, data.sections);
+      showToast('');
+    })
+    .withFailureHandler(function(e) { showToast(e.message, true); })
+    .getIssueDataFromClient({ issue_id: issueId });
+}
+
+// ─── Editor render ───────────────────────────────────────────────────────────
+
+function renderEditor(issue, sections) {
+  var isPublished = issue.status === 'published';
+  var content = document.getElementById('editor-content');
+  var placeholder = document.getElementById('editor-placeholder');
+
+  placeholder.style.display = 'none';
+  content.style.display = 'block';
+  content.innerHTML = buildEditorHTML(issue, sections, isPublished);
+
+  sections.forEach(function(s) {
+    if (s.image_url) refreshImageThumb(s.section_key, s.image_url);
+  });
+
+  if (isPublished) disableAllInputs();
+}
+
+function buildEditorHTML(issue, sections, readOnly) {
+  var statusBadge = '<span class="badge badge-' + issue.status + '">' + issue.status + '</span>';
+  var ro = readOnly ? ' disabled readonly' : '';
+
+  var header = '<div class="editor-header">' +
+    '<div class="editor-header-row">' +
+      '<div class="field-group"><label>Internal Title</label>' +
+        '<input type="text" id="field-title" value="' + escHtml(issue.title) + '"' + ro + '></div>' +
+      '<div class="field-group"><label>Masthead Season Label</label>' +
+        '<input type="text" id="field-season" value="' + escHtml(issue.season_label) + '"' + ro + '></div>' +
+    '</div>' +
+    '<div class="status-row"><span class="status-label">Status:</span>' + statusBadge + '</div>' +
+    '<div class="action-bar">' + buildActionBar(issue) + '</div>' +
+    '</div>';
+
+  var sectionCards = sections.map(function(s) { return buildSectionCard(s, readOnly); }).join('');
+  return header + sectionCards;
+}
+
+function buildActionBar(issue) {
+  var btns = '';
+  if (issue.status !== 'published') {
+    btns += '<button class="btn btn-secondary" onclick="saveDraft()">💾 Save Draft</button>';
+    btns += '<button class="btn btn-primary"   onclick="setPreview()">👁 Preview</button>';
+    btns += '<button class="btn btn-success"   onclick="publishIssue()">🚀 Publish</button>';
+    btns += '<button class="btn btn-secondary" onclick="copyFromPrev()">📋 Copy from Previous</button>';
+  } else {
+    btns += '<button class="btn btn-warning"   onclick="unpublishIssue()">↩ Unpublish</button>';
+    btns += '<button class="btn btn-secondary" onclick="printIssue()">🖨 Print / PDF</button>';
+  }
+  return btns;
+}
+
+function buildSectionCard(s, readOnly) {
+  var isRequired = (s.section_key === 'main_message' || s.section_key === 'meeting_dates');
+  var isArticle  = s.section_key.indexOf('article_') === 0;
+  var collapsed  = isArticle && !s.enabled ? ' collapsed' : '';
+  var ro = readOnly ? ' disabled readonly' : '';
+
+  var header = '<div class="section-card-header">';
+  header += '<h3>' + sectionLabel(s.section_key) + '</h3>';
+  if (isRequired) header += '<span class="section-required-tag">Required</span>';
+  if (isArticle) {
+    header += '<label class="section-enable-toggle">' +
+      '<input type="checkbox" id="enable-' + s.section_key + '"' +
+      (s.enabled ? ' checked' : '') + (readOnly ? ' disabled' : '') +
+      ' onchange="toggleSection(\'' + s.section_key + '\')">' +
+      ' Enabled</label>';
+  }
+  header += '</div>';
+
+  var fields = '<div class="section-fields">' +
+    '<div class="section-title-row"><div class="field-group" style="flex:1">' +
+    '<label>Section Title</label>' +
+    '<input type="text" id="title-' + s.section_key + '" value="' + escHtml(s.title) + '"' + ro + '>' +
+    '</div></div>' +
+    '<div class="field-group"><label>Body Text</label>' +
+    '<textarea id="body-' + s.section_key + '" rows="6"' + ro + '>' + escHtml(s.body) + '</textarea></div>';
+
+  if (s.section_key !== 'meeting_dates') {
+    fields += '<div class="field-group"><label>Image</label>' +
+      '<div class="image-row">' +
+      '<img id="thumb-' + s.section_key + '" class="image-thumb" style="display:none" src="" alt="">' +
+      '<input class="btn btn-secondary" type="button" value="📎 Upload"' +
+      (readOnly ? ' disabled' : ' onclick="triggerUpload(\'' + s.section_key + '\')"') + '>' +
+      '<input class="btn btn-secondary" type="button" value="Clear"' +
+      (readOnly ? ' disabled' : ' onclick="clearImage(\'' + s.section_key + '\')"') + '>' +
+      '<select class="image-position-select" id="imgpos-' + s.section_key + '"' + ro + '>' +
+      '<option value="right"' + (s.image_position==='right'?' selected':'') + '>Image Right</option>' +
+      '<option value="left"'  + (s.image_position==='left' ?' selected':'') + '>Image Left</option>' +
+      '</select>' +
+      '<input type="text" class="image-url-input" id="imgurl-' + s.section_key + '" ' +
+      'value="' + escHtml(s.image_url) + '" placeholder="Drive URL (auto-filled on upload)"' + ro + '>' +
+      '<input type="file" id="fileinput-' + s.section_key + '" style="display:none" ' +
+      'accept="image/*" onchange="handleFileSelected(\'' + s.section_key + '\')">' +
+      '</div></div>';
+  }
+
+  fields += '</div>';
+  return '<div class="section-card' + collapsed + '" id="card-' + s.section_key + '">' + header + fields + '</div>';
+}
+
+function sectionLabel(key) {
+  var labels = { main_message:'Main Message', meeting_dates:'Board Meeting Dates',
+                 article_1:'Article 1', article_2:'Article 2', article_3:'Article 3',
+                 article_4:'Article 4', article_5:'Article 5' };
+  return labels[key] || key;
+}
+
+function disableAllInputs() {
+  document.querySelectorAll('#editor-content input, #editor-content textarea, #editor-content select')
+    .forEach(function(el){ el.disabled = true; });
+}
+
+// ─── Toggle article section ──────────────────────────────────────────────────
+
+function toggleSection(sectionKey) {
+  var card = document.getElementById('card-' + sectionKey);
+  var cb   = document.getElementById('enable-' + sectionKey);
+  if (cb.checked) {
+    card.classList.remove('collapsed');
+  } else {
+    card.classList.add('collapsed');
+  }
+}
+
+// ─── Save / collect sections ─────────────────────────────────────────────────
+
+function collectSections() {
+  var keys = ['main_message','meeting_dates','article_1','article_2','article_3','article_4','article_5'];
+  return keys.map(function(key, idx) {
+    var isRequired = (key === 'main_message' || key === 'meeting_dates');
+    var enabledEl  = document.getElementById('enable-' + key);
+    var enabled    = isRequired ? true : (enabledEl ? enabledEl.checked : false);
+    return {
+      issue_id:       currentIssueId,
+      section_key:    key,
+      title:          (document.getElementById('title-' + key)  || {value:''}).value,
+      body:           (document.getElementById('body-'  + key)  || {value:''}).value,
+      image_url:      (document.getElementById('imgurl-' + key) || {value:''}).value,
+      image_position: ((document.getElementById('imgpos-' + key) || {value:'right'}).value),
+      display_order:  idx,
+      enabled:        enabled
+    };
+  });
+}
+
+function saveDraft() {
+  var title  = document.getElementById('field-title').value.trim();
+  var season = document.getElementById('field-season').value.trim();
+  showToast('Saving…');
+  google.script.run
+    .withSuccessHandler(function() { showToast('Draft saved.'); })
+    .withFailureHandler(function(e){ showToast(e.message, true); })
+    .saveContentFromClient({
+      issue_id:     currentIssueId,
+      title:        title,
+      season_label: season,
+      sections:     JSON.stringify(collectSections())
+    });
+}
+
+// ─── Status actions ──────────────────────────────────────────────────────────
+
+function setPreview() {
+  saveDraftThen(function() {
+    google.script.run
+      .withSuccessHandler(function(r) {
+        showToast('Preview link ready — copy URL from the address bar after opening.');
+        window.open(r.issue_url, '_blank');
+        refreshIssueList();
+      })
+      .withFailureHandler(function(e){ showToast(e.message, true); })
+      .setStatusFromClient({ issue_id: currentIssueId, status: 'preview' });
+  });
+}
+
+function publishIssue() {
+  if (!confirm('Publish this issue? It will go live on prestonfield.org immediately.')) return;
+  saveDraftThen(function() {
+    google.script.run
+      .withSuccessHandler(function() {
+        showToast('Published! Issue is now live.');
+        refreshIssueList();
+        loadIssue(currentIssueId);
+      })
+      .withFailureHandler(function(e){ showToast(e.message, true); })
+      .setStatusFromClient({ issue_id: currentIssueId, status: 'published' });
+  });
+}
+
+function unpublishIssue() {
+  if (!confirm('Unpublish this issue? It will be removed from the public site.')) return;
+  google.script.run
+    .withSuccessHandler(function() {
+      showToast('Unpublished. Issue is now a draft.');
+      refreshIssueList();
+      loadIssue(currentIssueId);
+    })
+    .withFailureHandler(function(e){ showToast(e.message, true); })
+    .setStatusFromClient({ issue_id: currentIssueId, status: 'draft' });
+}
+
+function copyFromPrev() {
+  if (!confirm('Copy all content from the most recent published issue? This will overwrite the current content.')) return;
+  google.script.run
+    .withSuccessHandler(function(r) {
+      showToast('Copied from: ' + r.copied_from_title);
+      loadIssue(currentIssueId);
+    })
+    .withFailureHandler(function(e){ showToast(e.message, true); })
+    .copyFromPreviousFromClient({ issue_id: currentIssueId });
+}
+
+function printIssue() {
+  showToast('Open the public site and use the Print button there.');
+}
+
+function saveDraftThen(callback) {
+  var title  = document.getElementById('field-title').value.trim();
+  var season = document.getElementById('field-season').value.trim();
+  google.script.run
+    .withSuccessHandler(callback)
+    .withFailureHandler(function(e){ showToast(e.message, true); })
+    .saveContentFromClient({
+      issue_id:     currentIssueId,
+      title:        title,
+      season_label: season,
+      sections:     JSON.stringify(collectSections())
+    });
+}
+
+function refreshIssueList() {
+  google.script.run
+    .withSuccessHandler(function(issues){ ALL_ISSUES = issues; renderIssueList(); })
+    .withFailureHandler(function(e){ showToast(e.message, true); })
+    .getAllIssuesFromClient();
+}
+
+// ─── Image upload ────────────────────────────────────────────────────────────
+
+function triggerUpload(sectionKey) {
+  document.getElementById('fileinput-' + sectionKey).click();
+}
+
+function clearImage(sectionKey) {
+  document.getElementById('imgurl-'   + sectionKey).value = '';
+  var thumb = document.getElementById('thumb-' + sectionKey);
+  thumb.style.display = 'none';
+  thumb.src = '';
+}
+
+function refreshImageThumb(sectionKey, url) {
+  if (!url) return;
+  var thumb = document.getElementById('thumb-' + sectionKey);
+  if (thumb) { thumb.src = url; thumb.style.display = 'block'; }
+}
+
+function handleFileSelected(sectionKey) {
+  var input = document.getElementById('fileinput-' + sectionKey);
+  var file  = input.files[0];
+  if (!file) return;
+
+  showToast('Uploading image…');
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var dataUrl  = e.target.result;
+    var base64   = dataUrl.split(',')[1];
+    var mimeType = file.type || 'image/jpeg';
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        document.getElementById('imgurl-' + sectionKey).value = result.url;
+        refreshImageThumb(sectionKey, result.url);
+        showToast('Image uploaded.');
+      })
+      .withFailureHandler(function(err) { showToast(err.message, true); })
+      .uploadImageFromClient({
+        file_name:  file.name,
+        mime_type:  mimeType,
+        image_data: base64
+      });
+  };
+  reader.readAsDataURL(file);
+}
+
+// ─── Init ────────────────────────────────────────────────────────────────────
+
+renderIssueList();
+</script>
