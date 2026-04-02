@@ -264,3 +264,40 @@ function testSectionsCRUD() {
 
   Logger.log('✓ Sections CRUD passed');
 }
+
+// ─── Drive Image Upload ───────────────────────────────────────────────────────
+
+/**
+ * Returns the "HOA Newsletter Images" Drive folder, creating it if needed.
+ */
+function getOrCreateImageFolder() {
+  const folders = DriveApp.getFoldersByName('HOA Newsletter Images');
+  if (folders.hasNext()) return folders.next();
+  return DriveApp.createFolder('HOA Newsletter Images');
+}
+
+/**
+ * Uploads a base64-encoded image to Google Drive and returns a public embed URL.
+ *
+ * @param {string} fileName   e.g. "community-pool.jpg"
+ * @param {string} mimeType   e.g. "image/jpeg"
+ * @param {string} base64Data base64-encoded file contents (no data: prefix)
+ * @returns {string}  Public URL: https://drive.google.com/uc?export=view&id=FILE_ID
+ */
+function uploadImageToDrive(fileName, mimeType, base64Data) {
+  const bytes = Utilities.base64Decode(base64Data);
+  const blob = Utilities.newBlob(bytes, mimeType || 'image/jpeg', fileName);
+  const folder = getOrCreateImageFolder();
+  const file = folder.createFile(blob);
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  return 'https://drive.google.com/uc?export=view&id=' + file.getId();
+}
+
+function testImageUpload() {
+  // A minimal 1x1 transparent PNG in base64
+  const tiny1x1Png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+  const url = uploadImageToDrive('test-image.png', 'image/png', tiny1x1Png);
+  Logger.log('Uploaded URL: ' + url);
+  if (!url.startsWith('https://drive.google.com/uc')) throw new Error('URL format unexpected: ' + url);
+  Logger.log('✓ uploadImageToDrive passed — check Drive for "HOA Newsletter Images" folder');
+}
