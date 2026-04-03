@@ -110,7 +110,7 @@ function buildSidebarNote(sections) {
   const section = (sections || []).find(function(s) { return s.section_key === 'sidebar_note'; });
   if (!section || !section.enabled || !section.body) return '';
   const title = section.title || '';
-  const bodyHtml = esc(section.body).replace(/\n/g, '<br>');
+  const bodyHtml = bodyToHtml(section.body);
   return '<div class="sidebar-section"><div class="sidebar-box">' +
     (title ? '<strong>' + esc(title) + '</strong><br>' : '') +
     '<div style="margin-top:' + (title ? '5' : '0') + 'px">' + bodyHtml + '</div>' +
@@ -180,7 +180,7 @@ function buildMeetingDatesBox(sections) {
   const section = (sections || []).find(function(s){ return s.section_key === 'meeting_dates'; });
   if (!section || !section.enabled || !section.body) return '';
   const title = section.title || 'Board Meeting Dates';
-  const bodyHtml = esc(section.body).replace(/\n/g, '<br>');
+  const bodyHtml = bodyToHtml(section.body);
   return '<div class="sidebar-section"><div class="sidebar-box">' +
     '<strong>' + esc(title) + '</strong><br>' +
     '<div style="margin-top:5px">' + bodyHtml + '</div>' +
