@@ -130,6 +130,7 @@ function buildActionBar(issue) {
     btns += '<button class="btn btn-primary"   onclick="setPreview()">👁 Preview</button>';
     btns += '<button class="btn btn-success"   onclick="publishIssue()">🚀 Publish</button>';
     btns += '<button class="btn btn-secondary" onclick="copyFromPrev()">📋 Copy from Previous</button>';
+    btns += '<button class="btn btn-danger"    onclick="deleteIssue()">🗑 Delete Issue</button>';
   } else {
     btns += '<button class="btn btn-warning"   onclick="unpublishIssue()">↩ Unpublish</button>';
     btns += '<button class="btn btn-secondary" onclick="printIssue()">🖨 Print / PDF</button>';
@@ -285,6 +286,24 @@ function unpublishIssue() {
     })
     .withFailureHandler(function(e){ showToast(e.message, true); })
     .setStatusFromClient({ issue_id: currentIssueId, status: 'draft' });
+}
+
+function deleteIssue() {
+  var issue = ALL_ISSUES.find(function(i) { return i.issue_id === currentIssueId; });
+  var title = issue ? issue.title : 'this issue';
+  if (!confirm('PERMANENTLY DELETE "' + title + '"?\n\nThis will remove the issue and all its content from the spreadsheet. This cannot be undone.')) return;
+  showToast('Deleting…');
+  google.script.run
+    .withSuccessHandler(function() {
+      ALL_ISSUES = ALL_ISSUES.filter(function(i) { return i.issue_id !== currentIssueId; });
+      currentIssueId = null;
+      renderIssueList();
+      document.getElementById('editor-content').style.display = 'none';
+      document.getElementById('editor-placeholder').style.display = 'block';
+      showToast('Issue deleted.');
+    })
+    .withFailureHandler(function(e) { showToast(e.message, true); })
+    .deleteIssueFromClient({ issue_id: currentIssueId });
 }
 
 function copyFromPrev() {

@@ -80,6 +80,18 @@ function copyFromPreviousFromClient(params) {
   return { success: true, copied_from_id: source.issue_id, copied_from_title: source.title };
 }
 
+function deleteIssueFromClient(params) {
+  requireAuth();
+  const id = Number(params.issue_id);
+  const issue = getIssueById(id);
+  if (!issue) throw new Error('Issue not found: ' + id);
+  if (issue.status === 'published') {
+    throw new Error('Cannot delete a published issue. Unpublish it first.');
+  }
+  deleteIssue(id);
+  return { success: true };
+}
+
 function uploadImageFromClient(params) {
   requireAuth();
   if (!params.image_data) throw new Error('No image data received.');

@@ -120,14 +120,48 @@ function buildBoardSection(boardMembers) {
 }
 
 function buildMgmtBox(config) {
-  const name  = config['mgmt_company_name'];
-  const phone = config['mgmt_company_phone'];
-  const email = config['mgmt_company_email'];
-  if (!name && !phone && !email) return '';
-  let html = '<div class="sidebar-box"><strong>Management Company</strong><br>' + esc(name || '');
-  if (phone) html += '<br>' + esc(phone);
-  if (email) html += '<br><a href="mailto:' + esc(email) + '">' + esc(email) + '</a>';
-  return '<div class="sidebar-section">' + html + '</div></div>';
+  const name         = config['mgmt_company_name'];
+  const phone        = config['mgmt_company_phone'];
+  const email        = config['mgmt_company_email'];
+  const website      = config['mgmt_company_website'];
+  const contactName  = config['mgmt_company_contact_name'];
+  const contactEmail = config['mgmt_company_contact_email'];
+  if (!name && !phone && !email && !website && !contactName) return '';
+
+  let html = '<div class="sidebar-section"><h3 class="sidebar-heading">Management Company</h3>';
+
+  // Company-level info
+  html += '<div class="board-member"><span class="board-member-name">' + esc(name || '') + '</span></div>';
+  if (website) {
+    html += '<div class="board-member"><span class="board-member-role">' +
+      '<a href="' + esc(website) + '" target="_blank">' + esc(website.replace(/^https?:\/\//, '')) + '</a>' +
+      '</span></div>';
+  }
+  if (phone) {
+    html += '<div class="board-member"><span class="board-member-role">' + esc(phone) + '</span></div>';
+  }
+  if (email) {
+    html += '<div class="board-member"><span class="board-member-role">' +
+      '<a href="mailto:' + esc(email) + '">' + esc(email) + '</a>' +
+      '</span></div>';
+  }
+
+  // Individual contact person
+  if (contactName || contactEmail) {
+    html += '<div style="margin-top:8px;padding-top:6px;border-top:1px solid #e2e8f0">';
+    if (contactName) {
+      html += '<div class="board-member"><span class="board-member-name">' + esc(contactName) + '</span>' +
+        '<span class="board-member-role">Contact</span></div>';
+    }
+    if (contactEmail) {
+      html += '<div class="board-member"><span class="board-member-role">' +
+        '<a href="mailto:' + esc(contactEmail) + '">' + esc(contactEmail) + '</a>' +
+        '</span></div>';
+    }
+    html += '</div>';
+  }
+
+  return html + '</div>';
 }
 
 function buildMeetingDatesBox(sections) {

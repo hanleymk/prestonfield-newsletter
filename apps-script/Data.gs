@@ -293,6 +293,35 @@ function uploadImageToDrive(fileName, mimeType, base64Data) {
   return 'https://drive.google.com/uc?export=view&id=' + file.getId();
 }
 
+/**
+ * Permanently deletes an issue and all its sections from the spreadsheet.
+ * Does NOT delete Drive images (they may be referenced elsewhere).
+ * @param {number} issueId
+ */
+function deleteIssue(issueId) {
+  const numId = Number(issueId);
+
+  // Delete section rows (bottom-up to avoid index shifts)
+  const sectionsSheet = getSheet('Sections');
+  const secData = sectionsSheet.getDataRange().getValues();
+  const secRowsToDelete = [];
+  for (let i = secData.length - 1; i >= 1; i--) {
+    if (Number(secData[i][0]) === numId) secRowsToDelete.push(i + 1);
+  }
+  secRowsToDelete.forEach(rowIdx => sectionsSheet.deleteRow(rowIdx));
+
+  // Delete the issue row
+  const issuesSheet = getSheet('Issues');
+  const issueData = issuesSheet.getDataRange().getValues();
+  for (let i = issueData.length - 1; i >= 1; i--) {
+    if (Number(issueData[i][0]) === numId) {
+      issuesSheet.deleteRow(i + 1);
+      return;
+    }
+  }
+  throw new Error('Issue not found: ' + issueId);
+}
+
 function testImageUpload() {
   // A minimal 1x1 transparent PNG in base64
   const tiny1x1Png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';

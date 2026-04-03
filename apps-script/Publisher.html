@@ -45,8 +45,8 @@
 
 <script>
   // Data bootstrapped from server
-  var ALL_ISSUES   = <?= issuesJson ?>;
-  var APP_CONFIG   = <?= configJson ?>;
+  var ALL_ISSUES   = <?!= issuesJson ?>;
+  var APP_CONFIG   = <?!= configJson ?>;
   var currentIssueId = null;
 </script>
 <?!= include('PublisherJS') ?>
