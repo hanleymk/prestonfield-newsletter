@@ -164,7 +164,7 @@ function buildSectionCard(s, readOnly) {
     '<div class="field-group"><label>Body Text</label>' +
     '<textarea id="body-' + s.section_key + '" rows="6"' + ro + '>' + escHtml(s.body) + '</textarea></div>';
 
-  if (s.section_key !== 'meeting_dates') {
+  if (s.section_key !== 'meeting_dates' && s.section_key !== 'sidebar_note') {
     fields += '<div class="field-group"><label>Image</label>' +
       '<div class="image-row">' +
       '<img id="thumb-' + s.section_key + '" class="image-thumb" style="display:none" src="" alt="">' +
@@ -190,7 +190,8 @@ function buildSectionCard(s, readOnly) {
 function sectionLabel(key) {
   var labels = { main_message:'Main Message', meeting_dates:'Board Meeting Dates',
                  article_1:'Article 1', article_2:'Article 2', article_3:'Article 3',
-                 article_4:'Article 4', article_5:'Article 5' };
+                 article_4:'Article 4', article_5:'Article 5',
+                 sidebar_note:'Sidebar Note' };
   return labels[key] || key;
 }
 
@@ -214,7 +215,7 @@ function toggleSection(sectionKey) {
 // ─── Save / collect sections ─────────────────────────────────────────────────
 
 function collectSections() {
-  var keys = ['main_message','meeting_dates','article_1','article_2','article_3','article_4','article_5'];
+  var keys = ['main_message','meeting_dates','article_1','article_2','article_3','article_4','article_5','sidebar_note'];
   return keys.map(function(key, idx) {
     var isRequired = (key === 'main_message' || key === 'meeting_dates');
     var enabledEl  = document.getElementById('enable-' + key);
@@ -250,11 +251,19 @@ function saveDraft() {
 // ─── Status actions ──────────────────────────────────────────────────────────
 
 function setPreview() {
+  // Open the tab synchronously (before any async call) to avoid popup blockers
+  var siteBase = (APP_CONFIG['public_site_url'] || '').replace(/\/$/, '');
+  var previewUrl = siteBase ? siteBase + '/?issue=' + currentIssueId : null;
+  var previewWin = previewUrl ? window.open(previewUrl, '_blank') : null;
+
   saveDraftThen(function() {
     google.script.run
-      .withSuccessHandler(function(r) {
-        showToast('Preview link ready — copy URL from the address bar after opening.');
-        window.open(r.issue_url, '_blank');
+      .withSuccessHandler(function() {
+        if (!previewWin) {
+          showToast('Status set to preview. Add public_site_url to Config to enable preview links.', true);
+        } else {
+          showToast('Preview opened in new tab.');
+        }
         refreshIssueList();
       })
       .withFailureHandler(function(e){ showToast(e.message, true); })

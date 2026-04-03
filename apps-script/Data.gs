@@ -140,6 +140,7 @@ function createIssue(title, seasonLabel) {
     [nextId, 'article_3',    '',                      '', '', 'right', 4, false],
     [nextId, 'article_4',    '',                      '', '', 'right', 5, false],
     [nextId, 'article_5',    '',                      '', '', 'right', 6, false],
+    [nextId, 'sidebar_note', '',                      '', '', '',      7, false],
   ];
   defaults.forEach(row => sectionsSheet.appendRow(row));
   return nextId;

@@ -100,9 +100,21 @@ function buildSidebar(config, boardMembers, sections) {
     buildBoardSection(boardMembers) +
     buildMgmtBox(config) +
     buildMeetingDatesBox(sections) +
+    buildSidebarNote(sections) +
     buildUtilitiesBox(config) +
     buildVendorBox(config) +
     '</aside>';
+}
+
+function buildSidebarNote(sections) {
+  const section = (sections || []).find(function(s) { return s.section_key === 'sidebar_note'; });
+  if (!section || !section.enabled || !section.body) return '';
+  const title = section.title || '';
+  const bodyHtml = esc(section.body).replace(/\n/g, '<br>');
+  return '<div class="sidebar-section"><div class="sidebar-box">' +
+    (title ? '<strong>' + esc(title) + '</strong><br>' : '') +
+    '<div style="margin-top:' + (title ? '5' : '0') + 'px">' + bodyHtml + '</div>' +
+    '</div></div>';
 }
 
 function buildBoardSection(boardMembers) {

@@ -23,6 +23,21 @@ function getIssueDataFromClient(params) {
   requireAuth();
   const issue = getIssueById(params.issue_id);
   if (!issue) throw new Error('Issue not found: ' + params.issue_id);
+
+  // Backfill any sections added after this issue was originally created
+  const sectionDefaults = {
+    sidebar_note: { title: '', body: '', image_url: '', image_position: '', display_order: 7, enabled: false }
+  };
+  const existing = getSectionsForIssue(params.issue_id).map(s => s.section_key);
+  Object.keys(sectionDefaults).forEach(function(key) {
+    if (!existing.includes(key)) {
+      const d = sectionDefaults[key];
+      getSheet('Sections').appendRow([
+        Number(params.issue_id), key, d.title, d.body, d.image_url, d.image_position, d.display_order, d.enabled
+      ]);
+    }
+  });
+
   return {
     issue:    issue,
     sections: getSectionsForIssue(params.issue_id)
