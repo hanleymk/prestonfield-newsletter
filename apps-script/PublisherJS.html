@@ -140,7 +140,7 @@ function buildActionBar(issue) {
 
 function buildSectionCard(s, readOnly) {
   var isRequired = (s.section_key === 'main_message' || s.section_key === 'meeting_dates');
-  var isArticle  = s.section_key.indexOf('article_') === 0;
+  var isArticle  = s.section_key.indexOf('article_') === 0 || s.section_key === 'sidebar_note';
   var collapsed  = isArticle && !s.enabled ? ' collapsed' : '';
   var ro = readOnly ? ' disabled readonly' : '';
 
