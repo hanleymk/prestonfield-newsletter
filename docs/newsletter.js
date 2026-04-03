@@ -100,9 +100,9 @@ function buildSidebar(config, boardMembers, sections) {
     buildBoardSection(boardMembers) +
     buildMgmtBox(config) +
     buildMeetingDatesBox(sections) +
-    buildSidebarNote(sections) +
     buildUtilitiesBox(config) +
     buildVendorBox(config) +
+    buildSidebarNote(sections) +
     '</aside>';
 }
 
@@ -219,7 +219,7 @@ function buildVendorBox(config) {
 function buildMainContent(sections) {
   const mainMessage = (sections || []).find(function(s){ return s.section_key === 'main_message'; });
   const articles    = (sections || []).filter(function(s){
-    return s.section_key !== 'main_message' && s.section_key !== 'meeting_dates' && s.enabled;
+    return s.section_key !== 'main_message' && s.section_key !== 'meeting_dates' && s.section_key !== 'sidebar_note' && s.enabled;
   });
 
   let html = '<main class="newsletter-main">';
