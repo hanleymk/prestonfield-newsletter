@@ -151,7 +151,7 @@
     <img class="feedback-banner" src="assets/banner.jpg" alt="Prestonfield HOA">
 
     <div class="feedback-card">
-      <a class="feedback-back" href="index.html">&larr; Back to Newsletter</a>
+      <a class="feedback-back" id="back-link" href="index.html">&larr; Back to Newsletter</a>
 
       <h1>Submit Feedback</h1>
       <p class="subtitle">
@@ -202,6 +202,24 @@
   <script>
     // Keep in sync with APPS_SCRIPT_URL in newsletter.js
     var FEEDBACK_URL = 'https://script.google.com/macros/s/AKfycbzLg7jgUUmSfTKvgO4Z1_jQyxT2EU-e89UGVIO4dN6-r5stqPH_-KMg85PU1rJRN8bv/exec';
+
+    // Dynamic back link — go to wherever the user came from, with a
+    // sensible fallback to the current issue page if referrer is unavailable.
+    (function() {
+      var backLink = document.getElementById('back-link');
+      var referrer = document.referrer;
+      // Use referrer if it exists and isn't the feedback page itself
+      if (referrer && referrer.indexOf('feedback.html') === -1) {
+        backLink.href = referrer;
+        if (referrer.indexOf('archive.html') !== -1) {
+          backLink.textContent = '\u2190 Back to Archive';
+        } else {
+          backLink.textContent = '\u2190 Back to Newsletter';
+        }
+      } else {
+        backLink.href = 'index.html';
+      }
+    })();
 
     document.getElementById('feedback-form').addEventListener('submit', function(e) {
       e.preventDefault();
