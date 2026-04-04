@@ -268,6 +268,54 @@ body {
 }
 
 /* ════════════════════════════════════════════════════════════════════════════
+   Mobile / portrait phone layout  (≤ 600px)
+   Collapses two-column layout to single column: sidebar on top, content below
+   ════════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 600px) {
+  /* Remove outer card margins/shadows — use full-width on phone */
+  .newsletter-page {
+    margin: 0;
+    box-shadow: none;
+  }
+
+  /* Shorter banner on phone */
+  .masthead-banner { height: 120px; }
+
+  /* Stack sidebar above main content */
+  .newsletter-body { flex-direction: column; }
+
+  /* Sidebar: full width, bottom border instead of right border */
+  .newsletter-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #d1d5db;
+    font-size: 13px;
+    padding: 14px 16px;
+  }
+
+  /* Slightly larger sidebar text at full width */
+  .sidebar-box      { font-size: 13px; }
+  .sidebar-heading  { font-size: 12px; }
+
+  /* Board member rows: stack name/role vertically on very narrow screens */
+  .board-member { flex-wrap: wrap; }
+
+  /* Main content: tighter side padding on phone */
+  .newsletter-main { padding: 14px 16px; }
+
+  /* Constrain floated images so they don't dominate narrow screens */
+  .section-image-right,
+  .section-image-left { max-width: 130px; }
+
+  /* Archive and feedback/error pages */
+  .archive-page {
+    margin: 0;
+    padding: 24px 16px;
+    box-shadow: none;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
    Print stylesheet
    ════════════════════════════════════════════════════════════════════════════ */
 @media print {
