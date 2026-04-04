@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════════
-// Code.gs  —  Main entry point. Routes all HTTP GET requests.
+// Code.gs  —  Main entry point. Routes all HTTP GET and POST requests.
 // ════════════════════════════════════════════════════════════════════════════
 
 /**
@@ -21,6 +21,26 @@ function doGet(e) {
     return jsonResponse({ status: 'ok', message: 'Prestonfield HOA Newsletter API' });
   } catch (err) {
     return jsonResponse({ status: 'error', message: err.message });
+  }
+}
+
+// ─── Feedback form POST ───────────────────────────────────────────────────────
+
+/**
+ * Handles HTTP POST requests from the feedback form.
+ * Content-Type: application/x-www-form-urlencoded (simple CORS request — no preflight).
+ * Apps Script automatically parses the body into e.parameter.
+ */
+function doPost(e) {
+  const params = (e && e.parameter) ? e.parameter : {};
+  try {
+    if (params.action === 'feedback') {
+      return jsonResponse(handleFeedbackPost(params));
+    }
+    return jsonResponse({ status: 'error', message: 'Unknown action.' });
+  } catch (err) {
+    Logger.log('doPost error: ' + err.message);
+    return jsonResponse({ status: 'error', message: 'Internal server error.' });
   }
 }
 

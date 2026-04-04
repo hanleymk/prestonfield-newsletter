@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prestonfield HOA — Submit Feedback</title>
+  <link rel="stylesheet" href="newsletter.css">
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  <style>
+    body { background: #f3f4f6; }
+
+    .feedback-wrap {
+      max-width: 680px;
+      margin: 40px auto 60px;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    /* Banner — matches newsletter masthead height */
+    .feedback-banner {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      object-position: center 40%;
+      display: block;
+    }
+
+    /* Card */
+    .feedback-card {
+      background: white;
+      padding: 32px 40px 40px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    }
+
+    .feedback-card h1 {
+      font-size: 22px;
+      font-weight: 700;
+      margin: 0 0 4px;
+      color: #111827;
+    }
+    .feedback-card p.subtitle {
+      font-size: 14px;
+      color: #6b7280;
+      margin: 0 0 24px;
+    }
+
+    .feedback-back {
+      display: inline-block;
+      font-size: 13px;
+      color: #1d4ed8;
+      text-decoration: none;
+      margin-bottom: 20px;
+    }
+    .feedback-back:hover { text-decoration: underline; }
+
+    /* Form fields */
+    .fb-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #374151;
+      margin: 20px 0 4px;
+    }
+    .fb-label:first-of-type { margin-top: 0; }
+    .fb-hint {
+      font-weight: 400;
+      color: #9ca3af;
+    }
+
+    .fb-input,
+    .fb-textarea {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      font-size: 14px;
+      font-family: Georgia, 'Times New Roman', serif;
+      color: #1a1a1a;
+      background: #fff;
+      transition: border-color 0.15s;
+    }
+    .fb-input:focus,
+    .fb-textarea:focus {
+      outline: none;
+      border-color: #374151;
+      box-shadow: 0 0 0 2px rgba(55,65,81,0.12);
+    }
+    .fb-textarea {
+      min-height: 130px;
+      resize: vertical;
+    }
+
+    /* Honeypot — visually hidden but NOT display:none (bots detect that) */
+    .hp-field {
+      position: absolute;
+      left: -9999px;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      tabindex: -1;
+    }
+
+    .recaptcha-wrap { margin-top: 20px; }
+
+    /* Submit button */
+    .fb-submit {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 9px 24px;
+      background: #1e293b;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      font-family: Arial, Helvetica, sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .fb-submit:hover:not(:disabled) { background: #0f172a; }
+    .fb-submit:disabled { background: #9ca3af; cursor: not-allowed; }
+
+    /* Status messages */
+    .fb-status {
+      display: none;
+      margin-top: 20px;
+      padding: 12px 16px;
+      border-radius: 4px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .fb-status.success {
+      background: #f0fdf4;
+      border: 1px solid #86efac;
+      color: #166534;
+    }
+    .fb-status.error {
+      background: #fef2f2;
+      border: 1px solid #fca5a5;
+      color: #991b1b;
+    }
+
+    @media (max-width: 600px) {
+      .feedback-wrap { margin: 0; }
+      .feedback-card { padding: 24px 20px 32px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="feedback-wrap">
+    <img class="feedback-banner" src="assets/banner.jpg" alt="Prestonfield HOA">
+
+    <div class="feedback-card">
+      <a class="feedback-back" href="index.html">&larr; Back to Newsletter</a>
+
+      <h1>Submit Feedback</h1>
+      <p class="subtitle">
+        Questions, concerns, or suggestions for the board?
+        Use this form to send us a message. Your email address is optional,
+        but required if you would like a reply.
+      </p>
+
+      <form id="feedback-form" novalidate>
+
+        <!-- Honeypot — invisible to humans, filled by bots -->
+        <div class="hp-field" aria-hidden="true">
+          <input type="text" name="website" id="hp-website"
+                 tabindex="-1" autocomplete="off">
+        </div>
+
+        <label class="fb-label" for="fb-message">
+          Your message <span class="fb-hint">(required)</span>
+        </label>
+        <textarea class="fb-textarea" id="fb-message" name="message" required
+          placeholder="Share your thoughts, questions, or concerns with the board…"></textarea>
+
+        <label class="fb-label" for="fb-name">
+          Name <span class="fb-hint">(optional)</span>
+        </label>
+        <input class="fb-input" type="text" id="fb-name" name="name"
+          placeholder="Jane Smith" autocomplete="name">
+
+        <label class="fb-label" for="fb-email">
+          Email address <span class="fb-hint">(optional — include only if you'd like a reply)</span>
+        </label>
+        <input class="fb-input" type="email" id="fb-email" name="email"
+          placeholder="jane@example.com" autocomplete="email">
+
+        <div class="recaptcha-wrap">
+          <div class="g-recaptcha" data-sitekey="6LcRs6YsAAAAAAs4URIODwn7Crw3w6cY2-kjR84-"></div>
+        </div>
+
+        <button type="submit" class="fb-submit" id="fb-submit-btn">
+          Send Feedback
+        </button>
+      </form>
+
+      <div class="fb-status" id="fb-status" role="alert"></div>
+    </div>
+  </div>
+
+  <script>
+    // Keep in sync with APPS_SCRIPT_URL in newsletter.js
+    var FEEDBACK_URL = 'https://script.google.com/macros/s/AKfycbzLg7jgUUmSfTKvgO4Z1_jQyxT2EU-e89UGVIO4dN6-r5stqPH_-KMg85PU1rJRN8bv/exec';
+
+    document.getElementById('feedback-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      submitFeedback();
+    });
+
+    function submitFeedback() {
+      var message  = document.getElementById('fb-message').value.trim();
+      var name     = document.getElementById('fb-name').value.trim();
+      var email    = document.getElementById('fb-email').value.trim();
+      var honeypot = document.getElementById('hp-website').value;
+      var btn      = document.getElementById('fb-submit-btn');
+
+      // Client-side honeypot check (belt-and-suspenders — server also checks)
+      if (honeypot) return;
+
+      if (!message) {
+        showStatus('error', 'Please enter a message before submitting.');
+        return;
+      }
+
+      var recaptchaResponse = grecaptcha.getResponse();
+      if (!recaptchaResponse) {
+        showStatus('error', 'Please check the "I\'m not a robot" box before submitting.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+      hideStatus();
+
+      // Encode as application/x-www-form-urlencoded (simple CORS request — no preflight)
+      var body = new URLSearchParams({
+        action:                 'feedback',
+        message:                message,
+        name:                   name,
+        email:                  email,
+        website:                honeypot,
+        'g-recaptcha-response': recaptchaResponse
+      }).toString();
+
+      fetch(FEEDBACK_URL, {
+        method:   'POST',
+        headers:  { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body:     body,
+        redirect: 'follow'
+      })
+      .then(function(resp) { return resp.json(); })
+      .then(function(data) {
+        if (data.status === 'ok') {
+          document.getElementById('feedback-form').style.display = 'none';
+          showStatus('success',
+            'Thank you! Your message has been received by the board. ' +
+            (email ? 'We\'ll be in touch at ' + email + ' if a reply is needed.' : ''));
+        } else {
+          throw new Error(data.message || 'Submission failed. Please try again.');
+        }
+      })
+      .catch(function(err) {
+        showStatus('error', err.message || 'Something went wrong. Please try again later.');
+        btn.disabled = false;
+        btn.textContent = 'Send Feedback';
+        grecaptcha.reset();
+      });
+    }
+
+    function showStatus(type, msg) {
+      var el = document.getElementById('fb-status');
+      el.className = 'fb-status ' + type;
+      el.textContent = msg;
+      el.style.display = 'block';
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function hideStatus() {
+      document.getElementById('fb-status').style.display = 'none';
+    }
+  </script>
+</body>
+</html>

@@ -274,6 +274,7 @@ function buildFooter(issue, config) {
       '<button class="footer-print-btn" onclick="window.print()">🖨 Print / Save PDF</button>' +
     '</span>' +
     '<a class="footer-archive-link" href="archive.html">View past issues &rarr;</a>' +
+    '<a class="footer-archive-link" href="feedback.html">Submit feedback &rarr;</a>' +
     '</footer>';
 }
 
