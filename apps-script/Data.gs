@@ -130,8 +130,18 @@ function createIssue(title, seasonLabel) {
   const now = new Date();
   getSheet('Issues').appendRow([nextId, title, seasonLabel || '', 'draft', now, '']);
 
-  // Create the 7 default section rows for this issue
+  // Remove any orphaned section rows that share this ID (can happen when a
+  // previous issue was deleted directly from the Issues sheet without going
+  // through the admin delete flow, leaving its section rows behind).
   const sectionsSheet = getSheet('Sections');
+  const existingData = sectionsSheet.getDataRange().getValues();
+  const orphanedRows = [];
+  for (let i = existingData.length - 1; i >= 1; i--) {
+    if (Number(existingData[i][0]) === nextId) orphanedRows.push(i + 1);
+  }
+  orphanedRows.forEach(rowIdx => sectionsSheet.deleteRow(rowIdx));
+
+  // Create the 8 default section rows for this issue
   const defaults = [
     [nextId, 'main_message',  "President's Message", '', '', 'right', 0, true],
     [nextId, 'meeting_dates', 'Board Meeting Dates',  '', '', '',      1, true],

@@ -23,25 +23,62 @@ function getIssueDataFromClient(params) {
   requireAuth();
   const issue = getIssueById(params.issue_id);
   if (!issue) throw new Error('Issue not found: ' + params.issue_id);
+  const numId = Number(params.issue_id);
 
-  // Backfill any sections added after this issue was originally created
+  // Read sections in raw sheet row order so we can detect and remove duplicates.
+  // Duplicate rows arise when a previously-deleted issue left orphaned section
+  // rows in the sheet — if a new issue gets the same ID, createIssue appends
+  // fresh blank defaults AFTER those orphaned rows. Keeping the LAST occurrence
+  // of each section_key ensures the blank defaults (appended last) win over any
+  // orphaned content, giving the new draft a clean slate.
+  const sheet = getSheet('Sections');
+  const sheetData = sheet.getDataRange().getValues();
+  const headers = sheetData[0].map(h => String(h).trim());
+  const issueIdCol = headers.indexOf('issue_id');
+
+  const rawSections = [];
+  for (let i = 1; i < sheetData.length; i++) {
+    if (Number(sheetData[i][issueIdCol]) === numId) {
+      const obj = {};
+      headers.forEach((h, j) => { obj[h] = sheetData[i][j]; });
+      rawSections.push(normalizeSectionRow(obj));
+    }
+  }
+
+  // Deduplicate: keep last occurrence of each section_key
+  const keyMap = {};
+  rawSections.forEach(s => { keyMap[s.section_key] = s; });
+  let sections = Object.values(keyMap).sort((a, b) => a.display_order - b.display_order);
+
+  // If duplicates were found, write the clean set back to the sheet immediately
+  // so subsequent opens are clean without needing another dedup pass.
+  if (rawSections.length > sections.length) {
+    saveSectionsForIssue(numId, sections);
+  }
+
+  // Backfill any section keys added to the system after this issue was first
+  // created (e.g. sidebar_note was added in a later release).
   const sectionDefaults = {
     sidebar_note: { title: '', body: '', image_url: '', image_position: '', display_order: 7, enabled: false }
   };
-  const existing = getSectionsForIssue(params.issue_id).map(s => s.section_key);
+  const existingKeys = sections.map(s => s.section_key);
+  const toAdd = [];
   Object.keys(sectionDefaults).forEach(function(key) {
-    if (!existing.includes(key)) {
+    if (!existingKeys.includes(key)) {
       const d = sectionDefaults[key];
-      getSheet('Sections').appendRow([
-        Number(params.issue_id), key, d.title, d.body, d.image_url, d.image_position, d.display_order, d.enabled
-      ]);
+      toAdd.push(normalizeSectionRow({
+        issue_id: numId, section_key: key, title: d.title, body: d.body,
+        image_url: d.image_url, image_position: d.image_position,
+        display_order: d.display_order, enabled: d.enabled
+      }));
+      sheet.appendRow([numId, key, d.title, d.body, d.image_url, d.image_position, d.display_order, d.enabled]);
     }
   });
+  if (toAdd.length > 0) {
+    sections = sections.concat(toAdd).sort((a, b) => a.display_order - b.display_order);
+  }
 
-  return {
-    issue:    issue,
-    sections: getSectionsForIssue(params.issue_id)
-  };
+  return { issue: issue, sections: sections };
 }
 
 function saveContentFromClient(params) {
