@@ -63,11 +63,17 @@ function serveAdmin() {
 
   const tmpl = HtmlService.createTemplateFromFile('Publisher');
   tmpl.issuesJson = JSON.stringify(getAllIssues().slice().reverse());
-  tmpl.configJson = JSON.stringify(getConfig());
+
+  // Strip server-side secrets from the config bootstrapped into the admin page.
+  const ADMIN_CONFIG_DENY_LIST = ['recaptcha_secret_key'];
+  const fullConfig = getConfig();
+  ADMIN_CONFIG_DENY_LIST.forEach(key => { delete fullConfig[key]; });
+  tmpl.configJson = JSON.stringify(fullConfig);
+
   return tmpl.evaluate()
     .setTitle('Prestonfield HOA — Newsletter Publisher')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.SAMEORIGIN);
 }
 
 // ─── Utility ─────────────────────────────────────────────────────────────────

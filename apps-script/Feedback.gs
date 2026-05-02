@@ -131,7 +131,8 @@ function sendFeedbackEmail(name, email, message) {
     'View all submissions in the Feedback sheet of the Prestonfield HOA Newsletter spreadsheet.';
 
   const options = { to: adminEmail, subject: 'New Feedback — Prestonfield HOA Newsletter', body: body };
-  if (email) options.replyTo = email;
+  // Only set replyTo if the email looks valid — guards against header injection.
+  if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) options.replyTo = email;
   MailApp.sendEmail(options);
 }
 

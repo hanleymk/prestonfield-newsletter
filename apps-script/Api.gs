@@ -2,6 +2,19 @@
 // Api.gs  —  JSON API response builders for the public endpoints
 // ════════════════════════════════════════════════════════════════════════════
 
+// Keys that must never be sent to the public site.
+const PUBLIC_CONFIG_DENY_LIST = ['recaptcha_secret_key', 'authorized_users'];
+
+/**
+ * Returns a copy of the Config object safe to expose in public API responses.
+ * Strips server-side secrets and internal admin settings.
+ */
+function getPublicConfig() {
+  const config = getConfig();
+  PUBLIC_CONFIG_DENY_LIST.forEach(key => { delete config[key]; });
+  return config;
+}
+
 /**
  * Wraps a plain JS object in a JSON ContentService response.
  */
@@ -26,7 +39,7 @@ function buildCurrentIssueResponse() {
     status: 'ok',
     issue:         current,
     sections:      getSectionsForIssue(current.issue_id),
-    config:        getConfig(),
+    config:        getPublicConfig(),
     board_members: getBoardMembers()
   });
 }
@@ -46,7 +59,7 @@ function buildIssueResponse(id) {
     status: 'ok',
     issue:         issue,
     sections:      getSectionsForIssue(issue.issue_id),
-    config:        getConfig(),
+    config:        getPublicConfig(),
     board_members: getBoardMembers()
   });
 }

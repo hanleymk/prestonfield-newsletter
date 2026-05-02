@@ -216,8 +216,9 @@
     (function() {
       var backLink = document.getElementById('back-link');
       var referrer = document.referrer;
-      // Use referrer if it exists and isn't the feedback page itself
-      if (referrer && referrer.indexOf('feedback.html') === -1) {
+      // Use referrer only if it's an http(s) URL and isn't the feedback page itself.
+      // Scheme check blocks javascript: URIs from being assigned to href.
+      if (referrer && /^https?:\/\//i.test(referrer) && referrer.indexOf('feedback.html') === -1) {
         backLink.href = referrer;
         if (referrer.indexOf('archive.html') !== -1) {
           backLink.textContent = '\u2190 Back to Archive';

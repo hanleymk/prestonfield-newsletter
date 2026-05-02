@@ -35,7 +35,7 @@ async function loadNewsletter(issueId) {
     const data = await apiFetch(params);
     renderNewsletter(data);
   } catch (err) {
-    showError('Could not load newsletter. Please try again later.<br><small>' + err.message + '</small>');
+    showError('Could not load newsletter. Please try again later.<br><small>' + esc(err.message) + '</small>');
   }
 }
 
@@ -44,7 +44,7 @@ async function loadArchive() {
     const data = await apiFetch({ action: 'archive' });
     renderArchive(data);
   } catch (err) {
-    showError('Could not load archive. Please try again later.<br><small>' + err.message + '</small>');
+    showError('Could not load archive. Please try again later.<br><small>' + esc(err.message) + '</small>');
   }
 }
 
@@ -145,9 +145,14 @@ function buildMgmtBox(config) {
   // Company-level info
   html += '<div class="board-member"><span class="board-member-name">' + esc(name || '') + '</span></div>';
   if (website) {
-    html += '<div class="board-member"><span class="board-member-role">' +
-      '<a href="' + esc(website) + '" target="_blank">' + esc(website.replace(/^https?:\/\//, '')) + '</a>' +
-      '</span></div>';
+    if (isSafeUrl(website)) {
+      html += '<div class="board-member"><span class="board-member-role">' +
+        '<a href="' + esc(website) + '" target="_blank" rel="noopener noreferrer">' +
+        esc(website.replace(/^https?:\/\//, '')) + '</a>' +
+        '</span></div>';
+    } else {
+      html += '<div class="board-member"><span class="board-member-role">' + esc(website) + '</span></div>';
+    }
   }
   if (phone) {
     html += '<div class="board-member"><span class="board-member-role">' + esc(phone) + '</span></div>';
@@ -256,7 +261,13 @@ function buildImageBlock(section) {
 
 function bodyToHtml(text) {
   if (!text) return '';
-  if (/<[a-z][\s\S]*>/i.test(text)) return text;
+  if (/<[a-z][\s\S]*>/i.test(text)) {
+    // Admin-authored HTML: sanitize with DOMPurify to strip scripts/event handlers.
+    // Falls back to stripping all tags if DOMPurify is unavailable for any reason.
+    return typeof DOMPurify !== 'undefined'
+      ? DOMPurify.sanitize(text)
+      : text.replace(/<[^>]*>/g, '');
+  }
   return text.split(/\n{2,}/)
     .filter(function(p){ return p.trim().length > 0; })
     .map(function(p){ return '<p>' + esc(p.trim()).replace(/\n/g, '<br>') + '</p>'; })
@@ -329,4 +340,12 @@ function showError(msg) {
 function esc(str) {
   return String(str || '')
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/**
+ * Returns true only for http:// or https:// URLs.
+ * Prevents javascript: URIs from appearing in href attributes.
+ */
+function isSafeUrl(url) {
+  return /^https?:\/\//i.test(String(url || ''));
 }
