@@ -102,8 +102,20 @@ function buildSidebar(config, boardMembers, sections) {
     buildMeetingDatesBox(sections) +
     buildUtilitiesBox(config) +
     buildVendorBox(config) +
+    buildDocumentsBox() +
     buildSidebarNote(sections) +
     '</aside>';
+}
+
+function buildDocumentsBox() {
+  return '<div class="sidebar-section">' +
+    '<h3 class="sidebar-heading">HOA Documents</h3>' +
+    '<div class="sidebar-box">' +
+    '<a href="assets/rules-and-regulations.pdf" target="_blank" rel="noopener noreferrer">' +
+    '&#128196; Rules &amp; Regulations' +
+    '</a>' +
+    '</div>' +
+    '</div>';
 }
 
 function buildSidebarNote(sections) {
