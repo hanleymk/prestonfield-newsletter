@@ -102,6 +102,7 @@ function renderEditor(issue, sections) {
   });
 
   if (isPublished) disableAllInputs();
+  updatePositionBadges();
 }
 
 function buildEditorHTML(issue, sections, readOnly) {
@@ -144,7 +145,13 @@ function buildSectionCard(s, readOnly) {
   var collapsed  = isArticle && !s.enabled ? ' collapsed' : '';
   var ro = readOnly ? ' disabled readonly' : '';
 
+  var isPureArticle = s.section_key.indexOf('article_') === 0;
   var header = '<div class="section-card-header">';
+  if (isPureArticle && !readOnly) {
+    header += '<span class="pos-badge" id="pos-badge-' + s.section_key + '">?</span>';
+    header += '<button class="move-btn" id="move-up-' + s.section_key + '" onclick="moveSectionCard(\'' + s.section_key + '\',-1)" title="Move up">▲</button>';
+    header += '<button class="move-btn" id="move-dn-' + s.section_key + '" onclick="moveSectionCard(\'' + s.section_key + '\',1)" title="Move down">▼</button>';
+  }
   header += '<h3>' + sectionLabel(s.section_key) + '</h3>';
   if (isRequired) header += '<span class="section-required-tag">Required</span>';
   if (isArticle) {
@@ -189,10 +196,10 @@ function buildSectionCard(s, readOnly) {
 
 function sectionLabel(key) {
   var labels = { main_message:'Main Message', meeting_dates:'Board Meeting Dates',
-                 article_1:'Article 1', article_2:'Article 2', article_3:'Article 3',
-                 article_4:'Article 4', article_5:'Article 5',
                  sidebar_note:'Sidebar Note' };
-  return labels[key] || key;
+  if (labels[key]) return labels[key];
+  if (key.indexOf('article_') === 0) return 'Article';
+  return key;
 }
 
 function disableAllInputs() {
@@ -214,9 +221,47 @@ function toggleSection(sectionKey) {
 
 // ─── Save / collect sections ─────────────────────────────────────────────────
 
+function getArticleKeysInOrder() {
+  return Array.from(document.querySelectorAll('.section-card[id^="card-article_"]'))
+    .map(function(el) { return el.id.slice(5); }); // strip 'card-' prefix
+}
+
+function updatePositionBadges() {
+  var keys = getArticleKeysInOrder();
+  keys.forEach(function(key, idx) {
+    var badge = document.getElementById('pos-badge-' + key);
+    if (badge) badge.textContent = idx + 1;
+    var upBtn = document.getElementById('move-up-' + key);
+    var dnBtn = document.getElementById('move-dn-' + key);
+    if (upBtn) upBtn.disabled = (idx === 0);
+    if (dnBtn) dnBtn.disabled = (idx === keys.length - 1);
+  });
+}
+
+function moveSectionCard(key, dir) {
+  var keys = getArticleKeysInOrder();
+  var idx  = keys.indexOf(key);
+  var newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= keys.length) return;
+  var card     = document.getElementById('card-' + key);
+  var swapCard = document.getElementById('card-' + keys[newIdx]);
+  if (dir > 0) {
+    card.parentNode.insertBefore(swapCard, card);   // swap moves up, card moves down
+  } else {
+    card.parentNode.insertBefore(card, swapCard);   // card moves up
+  }
+  updatePositionBadges();
+}
+
 function collectSections() {
-  var keys = ['main_message','meeting_dates','article_1','article_2','article_3','article_4','article_5','sidebar_note'];
-  return keys.map(function(key, idx) {
+  // Fixed order: main_message and meeting_dates always first, sidebar_note always last.
+  // Articles are collected in their current DOM order (set by ↑/↓ buttons).
+  var fixedBefore = ['main_message', 'meeting_dates'];
+  var articleKeys = getArticleKeysInOrder();
+  var fixedAfter  = ['sidebar_note'];
+  var allKeys     = fixedBefore.concat(articleKeys).concat(fixedAfter);
+
+  return allKeys.map(function(key, idx) {
     var isRequired = (key === 'main_message' || key === 'meeting_dates');
     var enabledEl  = document.getElementById('enable-' + key);
     var enabled    = isRequired ? true : (enabledEl ? enabledEl.checked : false);

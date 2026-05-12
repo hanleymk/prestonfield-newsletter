@@ -109,4 +109,15 @@ textarea:focus { outline: none; border-color: #3b82f6;
 
 /* ── Collapsed article sections ─────────────────────────────────────────── */
 .section-card.collapsed .section-fields { display: none; }
+
+/* ── Article reorder controls ────────────────────────────────────────────── */
+.pos-badge { display: inline-flex; align-items: center; justify-content: center;
+             width: 22px; height: 22px; border-radius: 50%; background: #3b82f6;
+             font-size: 11px; font-weight: 700; color: white; flex-shrink: 0; }
+.move-btn { width: 24px; height: 24px; padding: 0; border: 1px solid #d1d5db;
+            border-radius: 4px; background: #f8fafc; cursor: pointer; font-size: 11px;
+            display: inline-flex; align-items: center; justify-content: center;
+            color: #374151; line-height: 1; }
+.move-btn:hover:not(:disabled) { background: #e2e8f0; border-color: #94a3b8; }
+.move-btn:disabled { opacity: 0.25; cursor: not-allowed; }
 </style>
