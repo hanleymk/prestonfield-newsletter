@@ -144,13 +144,15 @@ function buildBoardSection(boardMembers) {
 }
 
 function buildMgmtBox(config) {
-  const name         = config['mgmt_company_name'];
-  const phone        = config['mgmt_company_phone'];
-  const email        = config['mgmt_company_email'];
-  const website      = config['mgmt_company_website'];
-  const contactName  = config['mgmt_company_contact_name'];
-  const contactEmail = config['mgmt_company_contact_email'];
-  if (!name && !phone && !email && !website && !contactName) return '';
+  const name          = config['mgmt_company_name'];
+  const phone         = config['mgmt_company_phone'];
+  const email         = config['mgmt_company_email'];
+  const website       = config['mgmt_company_website'];
+  const contactName   = config['mgmt_company_contact_name'];
+  const contactEmail  = config['mgmt_company_contact_email'];
+  const contactName2  = config['mgmt_company_contact_name_2'];
+  const contactEmail2 = config['mgmt_company_contact_email_2'];
+  if (!name && !phone && !email && !website && !contactName && !contactName2) return '';
 
   let html = '<div class="sidebar-section"><h3 class="sidebar-heading">Management Company</h3>';
 
@@ -175,20 +177,21 @@ function buildMgmtBox(config) {
       '</span></div>';
   }
 
-  // Individual contact person
-  if (contactName || contactEmail) {
+  // Contact persons
+  [[contactName, contactEmail], [contactName2, contactEmail2]].forEach(function(pair, idx) {
+    const cName = pair[0]; const cEmail = pair[1];
+    if (!cName && !cEmail) return;
     html += '<div style="margin-top:8px;padding-top:6px;border-top:1px solid #e2e8f0">';
-    if (contactName) {
-      html += '<div class="board-member"><span class="board-member-name">' + esc(contactName) + '</span>' +
-        '<span class="board-member-role">Contact</span></div>';
+    if (cName) {
+      html += '<div class="board-member"><span class="board-member-name">' + esc(cName) + '</span></div>';
     }
-    if (contactEmail) {
+    if (cEmail) {
       html += '<div class="board-member"><span class="board-member-role">' +
-        '<a href="mailto:' + esc(contactEmail) + '">' + esc(contactEmail) + '</a>' +
+        '<a href="mailto:' + esc(cEmail) + '">' + esc(cEmail) + '</a>' +
         '</span></div>';
     }
     html += '</div>';
-  }
+  });
 
   return html + '</div>';
 }
