@@ -216,11 +216,15 @@ function buildUtilitiesBox(config) {
   }
   if (utilities.length === 0) return '';
   const items = utilities.map(function(u) {
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(u.phone);
+    const contactHtml = isEmail
+      ? '<a href="mailto:' + esc(u.phone) + '">' + esc(u.phone) + '</a>'
+      : esc(u.phone);
     return '<li><span class="util-label">' + esc(u.label) + '</span>' +
-           '<span class="util-phone">' + esc(u.phone) + '</span></li>';
+           '<span class="util-phone">' + contactHtml + '</span></li>';
   }).join('');
   return '<div class="sidebar-section"><div class="sidebar-box">' +
-    '<strong>Phone Numbers You Should Know</strong>' +
+    '<strong>Important Contacts</strong>' +
     '<ul class="utility-list">' + items + '</ul></div></div>';
 }
 
